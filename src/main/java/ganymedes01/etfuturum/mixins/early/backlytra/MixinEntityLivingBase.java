@@ -31,65 +31,64 @@ public abstract class MixinEntityLivingBase extends Entity {
 	@Inject(method = "moveEntityWithHeading", at = @At("HEAD"), cancellable = true)
 	private void moveElytra(float p_70612_1_, float p_70612_2_, CallbackInfo ci) {
 		/* method is named incorrectly in these older mappings, it's really isServerWorld */
-		if (this.isClientWorld() && !this.isInWater() && !this.handleLavaMovement()) {
-			if (this instanceof IElytraPlayer && ((IElytraPlayer) this).etfu$isElytraFlying()) {
-				if (this.motionY > -0.5) {
-					this.fallDistance = 1;
-				}
+        if (!this.isClientWorld() || this.isInWater() || this.handleLavaMovement()) return;
+        if (!(this instanceof IElytraPlayer elytraPlayer) || !elytraPlayer.etfu$isElytraFlying()) return;
 
-				Vec3 lookVec = this.getLookVec();
-				double pitchRadians = toRadians(this.rotationPitch);
+        if (this.motionY > -0.5) {
+            this.fallDistance = 1;
+        }
 
-				double horizontalPos = sqrt(lookVec.xCoord * lookVec.xCoord + lookVec.zCoord * lookVec.zCoord);
-				double horizontalSpeed = sqrt(this.motionX * this.motionX + this.motionZ * this.motionZ);
+        Vec3 lookVec = this.getLookVec();
+        double pitchRadians = toRadians(this.rotationPitch);
 
-                double cos2Pitch = cos(pitchRadians);
-				cos2Pitch = cos2Pitch * cos2Pitch;
-				this.motionY += -0.08 + cos2Pitch * 0.06;
+        double horizontalPos = sqrt(lookVec.xCoord * lookVec.xCoord + lookVec.zCoord * lookVec.zCoord);
+        double horizontalSpeed = sqrt(this.motionX * this.motionX + this.motionZ * this.motionZ);
 
-				if (this.motionY < 0 && horizontalPos > 0) {
-					double d2 = this.motionY * -0.1 * cos2Pitch;
-					this.motionY += d2;
-					this.motionX += lookVec.xCoord * d2 / horizontalPos;
-					this.motionZ += lookVec.zCoord * d2 / horizontalPos;
-				}
+        double cos2Pitch = cos(pitchRadians);
+        cos2Pitch = cos2Pitch * cos2Pitch;
+        this.motionY += -0.08 + cos2Pitch * 0.06;
 
-				if (pitchRadians < 0) {
-					double d9 = horizontalSpeed * (-Math.sin(pitchRadians)) * 0.04;
-					this.motionY += d9 * 3.2;
-					this.motionX -= lookVec.xCoord * d9 / horizontalPos;
-					this.motionZ -= lookVec.zCoord * d9 / horizontalPos;
-				}
+        if (this.motionY < 0 && horizontalPos > 0) {
+            double d2 = this.motionY * -0.1 * cos2Pitch;
+            this.motionY += d2;
+            this.motionX += lookVec.xCoord * d2 / horizontalPos;
+            this.motionZ += lookVec.zCoord * d2 / horizontalPos;
+        }
 
-				if (horizontalPos > 0) {
-					this.motionX += (lookVec.xCoord / horizontalPos * horizontalSpeed - this.motionX) * 0.1;
-					this.motionZ += (lookVec.zCoord / horizontalPos * horizontalSpeed - this.motionZ) * 0.1;
-				}
+        if (pitchRadians < 0) {
+            double d9 = horizontalSpeed * (-Math.sin(pitchRadians)) * 0.04;
+            this.motionY += d9 * 3.2;
+            this.motionX -= lookVec.xCoord * d9 / horizontalPos;
+            this.motionZ -= lookVec.zCoord * d9 / horizontalPos;
+        }
 
-				this.motionX *= 0.99;
-				this.motionY *= 0.98;
-				this.motionZ *= 0.99;
+        if (horizontalPos > 0) {
+            this.motionX += (lookVec.xCoord / horizontalPos * horizontalSpeed - this.motionX) * 0.1;
+            this.motionZ += (lookVec.zCoord / horizontalPos * horizontalSpeed - this.motionZ) * 0.1;
+        }
 
-				// DaBR hooks here! //
+        this.motionX *= 0.99;
+        this.motionY *= 0.98;
+        this.motionZ *= 0.99;
 
-				this.moveEntity(this.motionX, this.motionY, this.motionZ);
+        // DaBR hooks here! //
 
-				if (this.isCollidedHorizontally && !this.worldObj.isRemote) {
-					double newHorizontalSpeed = sqrt(this.motionX * this.motionX + this.motionZ * this.motionZ);
-					double speedChange = horizontalSpeed - newHorizontalSpeed;
-					double damage = speedChange * 10 - 3;
+        this.moveEntity(this.motionX, this.motionY, this.motionZ);
 
-					if (damage > 0) {
-						this.playSound((int) damage > 4 ? "game.player.hurt.fall.big" : "game.player.hurt.fall.small", 1, 1);
-						this.attackEntityFrom(flyIntoWall, (float) damage);
-					}
-				}
+        if (this.isCollidedHorizontally && !this.worldObj.isRemote) {
+            double newHorizontalSpeed = sqrt(this.motionX * this.motionX + this.motionZ * this.motionZ);
+            double speedChange = horizontalSpeed - newHorizontalSpeed;
+            double damage = speedChange * 10 - 3;
 
-				if (this.onGround && !this.worldObj.isRemote) {
-					((IElytraPlayer) this).etfu$setElytraFlying(false);
-				}
-				ci.cancel();
-			}
-		}
-	}
+            if (damage > 0) {
+                this.playSound((int) damage > 4 ? "game.player.hurt.fall.big" : "game.player.hurt.fall.small", 1, 1);
+                this.attackEntityFrom(flyIntoWall, (float) damage);
+            }
+        }
+
+        if (this.onGround && !this.worldObj.isRemote) {
+            ((IElytraPlayer) this).etfu$setElytraFlying(false);
+        }
+        ci.cancel();
+    }
 }
