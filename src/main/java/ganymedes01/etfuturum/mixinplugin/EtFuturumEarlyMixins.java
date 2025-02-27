@@ -2,7 +2,6 @@ package ganymedes01.etfuturum.mixinplugin;
 
 import com.gtnewhorizon.gtnhmixins.IEarlyMixinLoader;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
-import ganymedes01.etfuturum.EtFuturum;
 import ganymedes01.etfuturum.Tags;
 import ganymedes01.etfuturum.compat.CompatMisc;
 import ganymedes01.etfuturum.configuration.ConfigBase;
@@ -11,15 +10,14 @@ import ganymedes01.etfuturum.configuration.configs.ConfigEntities;
 import ganymedes01.etfuturum.configuration.configs.ConfigMixins;
 import ganymedes01.etfuturum.configuration.configs.ConfigTweaks;
 import ganymedes01.etfuturum.lib.Reference;
-import net.minecraft.launchwrapper.Launch;
-import org.spongepowered.asm.mixin.MixinEnvironment;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import net.minecraft.launchwrapper.Launch;
+import org.spongepowered.asm.mixin.MixinEnvironment;
 
 @IFMLLoadingPlugin.Name("EtFuturumEarlyMixins")
 @IFMLLoadingPlugin.MCVersion("1.7.10")
@@ -115,6 +113,7 @@ public class EtFuturumEarlyMixins implements IFMLLoadingPlugin, IEarlyMixinLoade
 			}
 			if (side == MixinEnvironment.Side.CLIENT) {
 				mixins.add("backlytra.client.MixinAbstractClientPlayer");
+				mixins.add("backlytra.client.MixinEntityClientPlayerMP");
 				mixins.add("backlytra.client.MixinEntityPlayerSP");
 				mixins.add("backlytra.client.MixinRenderPlayer");
 				mixins.add("backlytra.client.MixinModelBiped");

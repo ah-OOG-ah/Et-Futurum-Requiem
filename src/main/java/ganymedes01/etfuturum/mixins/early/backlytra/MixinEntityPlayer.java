@@ -1,6 +1,9 @@
 package ganymedes01.etfuturum.mixins.early.backlytra;
 
+import static ganymedes01.etfuturum.core.utils.Utils.lerp;
+
 import ganymedes01.etfuturum.configuration.configs.ConfigFunctions;
+import ganymedes01.etfuturum.core.utils.Logger;
 import ganymedes01.etfuturum.elytra.IElytraPlayer;
 import ganymedes01.etfuturum.items.equipment.ItemArmorElytra;
 import net.minecraft.entity.EntityLivingBase;
@@ -12,6 +15,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -31,6 +35,13 @@ public abstract class MixinEntityPlayer extends EntityLivingBase implements IEly
 
 	@Shadow
 	public InventoryPlayer inventory;
+
+	@Unique
+	protected boolean efr$isRolling;
+	@Unique
+	protected float efr$prevRoll;
+	@Unique
+	protected float efr$roll;
 
 	public MixinEntityPlayer(World p_i1594_1_) {
 		super(p_i1594_1_);
@@ -109,5 +120,60 @@ public abstract class MixinEntityPlayer extends EntityLivingBase implements IEly
 	private void readElytra(NBTTagCompound tagCompound, CallbackInfo ci) {
 		if (tagCompound.getBoolean("FallFlying"))
 			etfu$setElytraFlying(true);
+	}
+
+	@Inject(method = "onUpdate", at = @At("TAIL"))
+	protected void doABarrelRoll$baseTickTail(CallbackInfo ci) {
+		doABarrelRoll$baseTickTail2();
+
+		efr$prevRoll = doABarrelRoll$getRoll();
+
+		if (!doABarrelRoll$isRolling()) {
+			doABarrelRoll$setRoll(0.0f);
+		}
+	}
+
+	@Unique
+	protected void doABarrelRoll$baseTickTail2() {
+	}
+
+	@Override
+	public boolean doABarrelRoll$isRolling() {
+		return efr$isRolling;
+	}
+
+	@Override
+	public void doABarrelRoll$setRolling(boolean rolling) {
+		efr$isRolling = rolling;
+	}
+
+	@Override
+	public float doABarrelRoll$getRoll() {
+		return efr$roll;
+	}
+
+	@Override
+	public float doABarrelRoll$getRoll(float tickDelta) {
+		if (tickDelta == 1.0f) {
+			return doABarrelRoll$getRoll();
+		}
+
+		return lerp(tickDelta, efr$prevRoll, doABarrelRoll$getRoll());
+	}
+
+	@Override
+	public void doABarrelRoll$setRoll(float roll) {
+		if (!Float.isFinite(roll)) {
+			Logger.error("Invalid entity rotation: " + roll + ", discarding.");
+			return;
+		}
+		var lastRoll = doABarrelRoll$getRoll();
+		efr$roll = roll;
+
+		if (roll < -90 && lastRoll > 90) {
+			efr$prevRoll -= 360;
+		} else if (roll > 90 && lastRoll < -90) {
+			efr$prevRoll += 360;
+		}
 	}
 }
